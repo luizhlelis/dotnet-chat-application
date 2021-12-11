@@ -27,16 +27,25 @@ namespace ChatApi.Test.Integration
             // Arrange
             var requestBody = new { Username = "test-user", Password = "1StrongPassword*" };
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+            var expectedResponse = new Authentication {
+                ExpiresIn = DateTime.Now.AddDays(1).ToString(),
+                Scope = "read:chatroom update:chatroom",
+                TokenType = "Bearer" };
 
             // Act
-            var response = await _client.PostAsync("v1/Auth/token", content);
+            var response = await _client.PostAsync("v1/auth/token", content);
+            var responseMessage = await response.Content.ReadAsStringAsync();
+            var authenticationResponse = JsonConvert.DeserializeObject<Authentication>(responseMessage);
 
             // Assert
-            response
+            response.Should().Be200Ok();
+
+            authenticationResponse
                 .Should()
-                .Be200Ok()
-                .And
-                .BeOfType<Authentication>();
+                .BeEquivalentTo(expectedResponse, options => options
+                    .Excluding(source => source.AccessToken)
+                    .Excluding(source => source.ExpiresIn)
+                );
         }
 
         [Fact(DisplayName = "Should return unauthorized when password doesn't match")]
@@ -47,7 +56,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _client.PostAsync("v1/Auth/token", content);
+            var response = await _client.PostAsync("v1/auth/token", content);
 
             // Assert
             response
@@ -63,7 +72,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _client.PostAsync("v1/Auth/token", content);
+            var response = await _client.PostAsync("v1/auth/token", content);
 
             // Assert
             response
