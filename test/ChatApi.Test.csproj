@@ -17,16 +17,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="FluentAssertions.Web" Version="1.1.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\src\ChatApi\ChatApi.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Integration\" />
-    <None Remove="Unit\" />
-    <None Remove="Support\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Integration\" />
-    <Folder Include="Unit\" />
-    <Folder Include="Support\" />
   </ItemGroup>
 </Project>
