@@ -1,0 +1,23 @@
+version: "3.4"
+services:
+  chat-api:
+    container_name: chat-api
+    environment:
+      - ConnectionStrings__TimeSheetContext=Data Source=sql-server-database; Initial Catalog=TimeSheets; User Id=sa; Password=1StrongPassword*
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - sql-server-database
+    command: "dotnet ChatApi.dll"
+    ports:
+      - "80:80"
+  sql-server-database:
+    container_name: sql-server-database
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      SA_PASSWORD: 1StrongPassword*
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
