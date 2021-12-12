@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/dotnet/sdk:5.0
+
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef --version 5.0
+
+WORKDIR /app
+
+ADD ChatApi ./
+
+RUN chmod +x ./Scripts/add-and-apply-migrations.sh

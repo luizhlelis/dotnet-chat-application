@@ -1,9 +1,10 @@
 version: "3.4"
 services:
+
   chat-api:
     container_name: chat-api
     environment:
-      - ConnectionStrings__TimeSheetContext=Data Source=sql-server-database; Initial Catalog=TimeSheets; User Id=sa; Password=1StrongPassword*
+      ConnectionStrings__TimeSheetContext: "Data Source=sql-server-database; Initial Catalog=TimeSheets; User Id=sa; Password=1StrongPassword*"
     working_dir: /app
     build:
       context: .
@@ -13,6 +14,25 @@ services:
     command: "dotnet ChatApi.dll"
     ports:
       - "80:80"
+
+  migrations:
+    container_name: migrations
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    working_dir: /app
+    volumes:
+        - ./ChatApi/Infrastructure/Migrations:/app/Migrations
+    environment:
+      PATH: "$PATH:$HOME/.dotnet/tools/"
+      PROJECT: "/app/ChatApi.csproj"
+      MIGRATIONS_NAME: "InitialCreate"
+      SQL_CONTEXT_CLASS: "ChatContext"
+      ConnectionStrings__ChatContext: "Data Source=sql-server-database; Initial Catalog=ChatDb; User Id=sa; Password=1StrongPassword*"
+    command: "bash ./Scripts/add-and-apply-migrations.sh"
+    depends_on:
+      - sql-server-database
+
   sql-server-database:
     container_name: sql-server-database
     image: mcr.microsoft.com/mssql/server
