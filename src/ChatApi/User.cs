@@ -24,12 +24,12 @@ namespace ChatApi
         public string Password { get; set; }
 
         [NotMapped]
-        private readonly ChatContext _dbContext;
+        public ChatContext DbContext { get; set; }
 
         [NotMapped]
-        private readonly TokenCredentials _tokenCredentials;
+        public TokenCredentials TokenCredentials { get; set; }
 
-        public User() { Username = "username"; Password = "password"; }
+        public User() { }
 
         public User(string username, string password)
         {
@@ -37,15 +37,9 @@ namespace ChatApi
             Password = password.GetHashSha256();
         }
 
-        public User(ChatContext dbContext, TokenCredentials tokenCredentials)
-        {
-            _dbContext = dbContext;
-            _tokenCredentials = tokenCredentials;
-        }
-
         public bool AreCredentialsValid()
         {
-            var dbUser = _dbContext.Users.FirstOrDefault(user => user.Username == Username);
+            var dbUser = DbContext.Users.FirstOrDefault(user => user.Username == Username);
 
             return dbUser != null && IsPasswordValid(dbUser.Password);
         }
@@ -58,7 +52,7 @@ namespace ChatApi
         public Authentication Authenticate()
         {
             var expirationTime = DateTime.UtcNow
-                .AddDays(Convert.ToInt32(_tokenCredentials.ExpireInDays));
+                .AddDays(Convert.ToInt32(TokenCredentials.ExpireInDays));
 
             return new Authentication
             {
@@ -69,7 +63,7 @@ namespace ChatApi
 
         public string GenerateAccessToken(DateTime expirationTime)
         {
-            var symmetricKey = Convert.FromBase64String(_tokenCredentials.HmacSecretKey);
+            var symmetricKey = Convert.FromBase64String(TokenCredentials.HmacSecretKey);
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var tokenDescriptor = new SecurityTokenDescriptor

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Http;
 using Xunit;
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
@@ -18,7 +17,6 @@ namespace ChatApi.Test.Integration
         public HttpClient Client;
         private readonly TestingWebApplicationFactory<Startup> _factory;
         private readonly IDbContextTransaction _transaction;
-        //private readonly IServiceScope _serviceScope;
 
         public DatabaseFixture()
         {
@@ -31,7 +29,6 @@ namespace ChatApi.Test.Integration
             _transaction = dbContext.Database.BeginTransaction();
 
             dbContext.Users.Add(new User("test-user", "1StrongPassword*"));
-            dbContext.SaveChanges();
         }
 
         public void Dispose()
@@ -42,8 +39,6 @@ namespace ChatApi.Test.Integration
 
             _transaction.Rollback();
             _transaction.Dispose();
-
-            //_serviceScope.Dispose();
         }
     }
 

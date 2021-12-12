@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ChatApi.Infrastructure;
+using ChatApi.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +16,24 @@ namespace ChatApi.Controllers
     [Route("v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly TokenCredentials _tokenCredentials;
+        private readonly ChatContext _dbContext;
+
+        public AuthController(
+            TokenCredentials tokenCredentials,
+            ChatContext dbContext)
+        {
+            _tokenCredentials = tokenCredentials;
+            _dbContext = dbContext;
+        }
+
         [HttpPost("token")]
         public IActionResult Token(User user)
         {
             IActionResult response;
+
+            user.TokenCredentials = _tokenCredentials;
+            user.DbContext = _dbContext;
 
             response = user.AreCredentialsValid() ?
                 Ok(user.Authenticate()) :
