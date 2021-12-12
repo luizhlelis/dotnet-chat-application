@@ -6,19 +6,54 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
 using FluentAssertions;
+using ChatApi.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Storage;
+using ChatApi.Test.Support;
 
 namespace ChatApi.Test.Integration
 {
-    public class AuthControllerTest
+    public class DatabaseFixture : IDisposable
     {
-        private readonly HttpClient _client;
-        private readonly WebApplicationFactory<Startup> _factory;
+        public HttpClient Client;
+        private readonly TestingWebApplicationFactory<Startup> _factory;
+        private readonly IDbContextTransaction _transaction;
+        //private readonly IServiceScope _serviceScope;
 
-        public AuthControllerTest()
+        public DatabaseFixture()
         {
             // constructs the testing server with the HostBuilder configuration
-            _factory = new WebApplicationFactory<Startup>();
-            _client = _factory.CreateClient();
+            _factory = new TestingWebApplicationFactory<Startup>();
+            Client = _factory.CreateClient();
+
+            // Open a transaction to not commit tests changes to db
+            var dbContext = _factory.Services.GetRequiredService<ChatContext>();
+            _transaction = dbContext.Database.BeginTransaction();
+
+            dbContext.Users.Add(new User("test-user", "1StrongPassword*"));
+            dbContext.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            Client?.Dispose();
+
+            if (_transaction == null) return;
+
+            _transaction.Rollback();
+            _transaction.Dispose();
+
+            //_serviceScope.Dispose();
+        }
+    }
+
+    public class AuthControllerTest : IClassFixture<DatabaseFixture>
+    {
+        private readonly DatabaseFixture _fixture;
+
+        public AuthControllerTest(DatabaseFixture fixture)
+        {
+            _fixture = fixture;
         }
 
         [Fact(DisplayName = "Should return an access token when user exists and the password matches")]
@@ -27,13 +62,10 @@ namespace ChatApi.Test.Integration
             // Arrange
             var requestBody = new { Username = "test-user", Password = "1StrongPassword*" };
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-            var expectedResponse = new Authentication {
-                ExpiresIn = DateTime.Now.AddDays(1).ToString(),
-                Scope = "read:chatroom update:chatroom",
-                TokenType = "Bearer" };
+            var expectedResponse = new Authentication { TokenType = "Bearer" };
 
             // Act
-            var response = await _client.PostAsync("v1/auth/token", content);
+            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
             var responseMessage = await response.Content.ReadAsStringAsync();
             var authenticationResponse = JsonConvert.DeserializeObject<Authentication>(responseMessage);
 
@@ -44,8 +76,29 @@ namespace ChatApi.Test.Integration
                 .Should()
                 .BeEquivalentTo(expectedResponse, options => options
                     .Excluding(source => source.AccessToken)
-                    .Excluding(source => source.ExpiresIn)
                 );
+        }
+
+        [Fact(DisplayName = "Should return username when authenticated")]
+        public async Task ShouldReturnUserNameWhenAuthenticated()
+        {
+            // Arrange
+            var requestBody = new { Username = "test-user", Password = "1StrongPassword*" };
+            var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+            var expectedResponse = new { Username = "test-user" };
+
+            var authResponse = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var responseMessageString = await authResponse.Content.ReadAsStringAsync();
+            var authResponseMessage = JsonConvert.DeserializeObject<Authentication>(responseMessageString);
+
+            var headerAuthValue = authResponseMessage.TokenType + " " + authResponseMessage.AccessToken;
+
+            // Act
+            _fixture.Client.DefaultRequestHeaders.Add("Authorization", headerAuthValue);
+            var meResponse = await _fixture.Client.GetAsync("v1/auth/me");
+
+            // Assert
+            meResponse.Should().Be200Ok().And.BeAs(expectedResponse);
         }
 
         [Fact(DisplayName = "Should return unauthorized when password doesn't match")]
@@ -56,7 +109,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _client.PostAsync("v1/auth/token", content);
+            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
 
             // Assert
             response
@@ -72,7 +125,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _client.PostAsync("v1/auth/token", content);
+            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
 
             // Assert
             response

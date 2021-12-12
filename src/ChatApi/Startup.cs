@@ -1,13 +1,22 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using ChatApi.Infrastructure;
+using ChatApi.Settings;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
+using Microsoft.AspNetCore.Http;
+using FluentValidation;
+using ChatApi.Validators;
 
 namespace ChatApi
 {
@@ -24,6 +33,9 @@ namespace ChatApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+
+            // API versioning
             services.AddApiVersioning(options => {
                 options.ReportApiVersions = true;
 
@@ -37,6 +49,7 @@ namespace ChatApi
                 options.SubstituteApiVersionInUrl = true;
             });
 
+            // Swagger
             var openApiInfo = new OpenApiInfo();
             Configuration.Bind("OpenApiInfo", openApiInfo);
             services.AddSingleton(openApiInfo);
@@ -46,6 +59,30 @@ namespace ChatApi
             {
                 options.OperationFilter<SwaggerDefaultValues>();
             });
+
+            // Database
+            services.AddDbContext<ChatContext>(options =>
+                options
+                    .UseSqlServer(Configuration.GetConnectionString("ChatContext"))
+                    .LogTo(Console.WriteLine));
+
+            // Authentication
+            var tokenCredentials = new TokenCredentials();
+            Configuration.Bind("TokenCredentials", tokenCredentials);
+            services.AddSingleton(tokenCredentials);
+
+            services.AddAuthentication().AddJwtBearer(options =>
+                options.TokenValidationParameters = new TokenValidationParameters() {
+                    ValidIssuer = tokenCredentials.Issuer,
+                    ValidAudience = tokenCredentials.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenCredentials.HmacSecretKey))
+                }
+            );
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // Validators
+            services.AddScoped<IValidator<User>, UserValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,9 +102,9 @@ namespace ChatApi
                 }
             );
 
-            //app.UseHttpsRedirection();
-
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
