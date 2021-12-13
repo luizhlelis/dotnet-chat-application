@@ -9,6 +9,7 @@ using ChatApi.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Storage;
 using ChatApi.Test.Support;
+using Microsoft.Extensions.Hosting;
 
 namespace ChatApi.Test.Integration
 {
@@ -17,6 +18,7 @@ namespace ChatApi.Test.Integration
         public HttpClient Client;
         private readonly TestingWebApplicationFactory<Startup> _factory;
         private readonly IDbContextTransaction _transaction;
+        private readonly IServiceScope _testServiceScope;
 
         public DatabaseFixture()
         {
@@ -24,16 +26,21 @@ namespace ChatApi.Test.Integration
             _factory = new TestingWebApplicationFactory<Startup>();
             Client = _factory.CreateClient();
 
+            // Begin test service scope
+            _testServiceScope = _factory.Services.CreateScope();
+
             // Open a transaction to not commit tests changes to db
-            var dbContext = _factory.Services.GetRequiredService<ChatContext>();
+            var dbContext = _testServiceScope.ServiceProvider.GetRequiredService<ChatContext>();
             _transaction = dbContext.Database.BeginTransaction();
 
             dbContext.Users.Add(new User("test-user", "1StrongPassword*"));
+            dbContext.SaveChanges();
         }
 
         public void Dispose()
         {
             Client?.Dispose();
+            _testServiceScope.Dispose();
 
             if (_transaction == null) return;
 
