@@ -1,54 +1,13 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 using Xunit;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
 using FluentAssertions;
-using ChatApi.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Storage;
 using ChatApi.Test.Support;
-using Microsoft.Extensions.Hosting;
 
 namespace ChatApi.Test.Integration
 {
-    public class DatabaseFixture : IDisposable
-    {
-        public HttpClient Client;
-        private readonly TestingWebApplicationFactory<Startup> _factory;
-        private readonly IDbContextTransaction _transaction;
-        private readonly IServiceScope _testServiceScope;
-
-        public DatabaseFixture()
-        {
-            // constructs the testing server with the HostBuilder configuration
-            _factory = new TestingWebApplicationFactory<Startup>();
-            Client = _factory.CreateClient();
-
-            // Begin test service scope
-            _testServiceScope = _factory.Services.CreateScope();
-
-            // Open a transaction to not commit tests changes to db
-            var dbContext = _testServiceScope.ServiceProvider.GetRequiredService<ChatContext>();
-            _transaction = dbContext.Database.BeginTransaction();
-
-            dbContext.Users.Add(new User("test-user", "1StrongPassword*"));
-            dbContext.SaveChanges();
-        }
-
-        public void Dispose()
-        {
-            Client?.Dispose();
-            _testServiceScope.Dispose();
-
-            if (_transaction == null) return;
-
-            _transaction.Rollback();
-            _transaction.Dispose();
-        }
-    }
-
     public class AuthControllerTest : IClassFixture<DatabaseFixture>
     {
         private readonly DatabaseFixture _fixture;
@@ -116,7 +75,7 @@ namespace ChatApi.Test.Integration
             // Assert
             response
                 .Should()
-                .BeAs(new ErrorResponse { Error = "access_denied", ErrorDescription = "Unauthorized" });
+                .Be401Unauthorized();
         }
 
         [Fact(DisplayName = "Should return unauthorized when username doesn't exist")]
@@ -132,7 +91,7 @@ namespace ChatApi.Test.Integration
             // Assert
             response
                 .Should()
-                .BeAs(new ErrorResponse { Error = "access_denied", ErrorDescription = "Unauthorized" });
+                .Be401Unauthorized();
         }
     }
 }

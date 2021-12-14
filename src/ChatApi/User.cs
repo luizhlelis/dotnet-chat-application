@@ -9,6 +9,9 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace ChatApi
 {
@@ -16,7 +19,7 @@ namespace ChatApi
     {
         [Key]
         [Required]
-        [MaxLength(10)]
+        [MaxLength(20)]
         public string Username { get; set; }
 
         [Required]
@@ -24,9 +27,11 @@ namespace ChatApi
         public string Password { get; set; }
 
         [NotMapped]
+        [JsonIgnore]
         public ChatContext DbContext { get; set; }
 
         [NotMapped]
+        [JsonIgnore]
         public TokenCredentials TokenCredentials { get; set; }
 
         public User() { }
@@ -74,6 +79,9 @@ namespace ChatApi
                 }),
 
                 Expires = expirationTime,
+
+                Audience = TokenCredentials.Audience,
+                Issuer = TokenCredentials.Issuer,
 
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(symmetricKey),

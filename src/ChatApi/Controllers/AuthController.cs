@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Net;
 using ChatApi.Infrastructure;
 using ChatApi.Settings;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +26,7 @@ namespace ChatApi.Controllers
         }
 
         [HttpPost("token")]
-        public IActionResult Token(User user)
+        public IActionResult Token([FromBody] User user)
         {
             IActionResult response;
 
@@ -37,7 +35,10 @@ namespace ChatApi.Controllers
 
             response = user.AreCredentialsValid() ?
                 Ok(user.Authenticate()) :
-                Unauthorized(new ErrorResponse { Error = "access_denied", ErrorDescription = "Unauthorized" });
+                Unauthorized(new ErrorResponseFactory().CreateErrorResponse(
+                    HttpStatusCode.Unauthorized,
+                    Activity.Current.Id)
+                );
 
             return response;
         }
@@ -46,7 +47,7 @@ namespace ChatApi.Controllers
         [HttpGet("me")]
         public IActionResult Me()
         {
-            return Ok( new { User.Identity.Name });
+            return Ok( new { Username = User.Identity.Name });
         }
     }
 }

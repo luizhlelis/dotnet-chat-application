@@ -17,6 +17,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using FluentValidation;
 using ChatApi.Validators;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ChatApi
 {
@@ -71,13 +72,20 @@ namespace ChatApi
             Configuration.Bind("TokenCredentials", tokenCredentials);
             services.AddSingleton(tokenCredentials);
 
-            services.AddAuthentication().AddJwtBearer(options =>
-                options.TokenValidationParameters = new TokenValidationParameters() {
-                    ValidIssuer = tokenCredentials.Issuer,
-                    ValidAudience = tokenCredentials.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenCredentials.HmacSecretKey))
-                }
-            );
+            services
+                .AddAuthentication(sharedOptions =>
+                {
+                    sharedOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    sharedOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    sharedOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                    options.TokenValidationParameters = new TokenValidationParameters() {
+                        ValidIssuer = tokenCredentials.Issuer,
+                        ValidAudience = tokenCredentials.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(tokenCredentials.HmacSecretKey))
+                    }
+                );
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

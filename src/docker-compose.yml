@@ -21,8 +21,8 @@ services:
       context: .
       dockerfile: Dockerfile.migrations
     working_dir: /app
-    volumes:
-        - ./ChatApi/Infrastructure/Migrations:/app/Migrations
+#    volumes:
+#        - ./ChatApi/Infrastructure/Migrations:/app/Migrations
     environment:
       PATH: "$PATH:$HOME/.dotnet/tools/"
       PROJECT: "/app/ChatApi.csproj"
@@ -41,3 +41,24 @@ services:
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
+
+  integration-tests:
+    container_name: integration-tests
+    image: mcr.microsoft.com/dotnet/sdk:5.0
+    environment:
+      - ConnectionStrings__TimeSheetContext="Data Source=sql-server-database; Initial Catalog=ChatDbTest; User Id=sa; Password=1StrongPassword*""
+    volumes:
+      - ./ChatApi/wait-for-it.sh:/app/wait-for-it.sh
+      - ../test:/test
+    working_dir: /app
+    command:
+      [
+        "./Scripts/wait-for-it.sh",
+        "sql-server-database:1433",
+        "--",
+        "dotnet",
+        "test",
+        "../test/ChatApi.Test.csproj"
+      ]
+    depends_on:
+      - sql-server-database

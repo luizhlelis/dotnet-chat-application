@@ -28,10 +28,9 @@ namespace ChatApi.Test.Support
                             services
                                 .RemoveAll<ChatContext>()
                                 .AddDbContext<ChatContext>(
-                                    options =>
-                                        options
-                                            .UseSqlServer(ConfigurationManager.AppSettings["ConnectionStrings:ChatContext"])
-                                            .LogTo(Console.WriteLine),
+                                    options => options
+                                        .UseSqlServer(ConfigurationManager.AppSettings["ConnectionStrings:ChatContext"])
+                                        .LogTo(Console.WriteLine),
                                     ServiceLifetime.Singleton,
                                     ServiceLifetime.Singleton
                             )
