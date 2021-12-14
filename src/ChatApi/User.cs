@@ -42,6 +42,30 @@ namespace ChatApi
             Password = password.GetHashSha256();
         }
 
+        public async Task<string> Create()
+        {
+            if (!DbContext.Users.Any(user => user.Username == Username))
+            {
+                await DbContext.Users.AddAsync(this);
+                DbContext.SaveChanges();
+                return string.Empty;
+            }
+            else
+                return "User already exists";
+        }
+
+        public string Delete()
+        {
+            if (!DbContext.Users.Any(user => user.Username == Username))
+            {
+                DbContext.Users.Remove(this);
+                DbContext.SaveChanges();
+                return string.Empty;
+            }
+            else
+                return "User doesn't exist";
+        }
+
         public bool AreCredentialsValid()
         {
             var dbUser = DbContext.Users.FirstOrDefault(user => user.Username == Username);
