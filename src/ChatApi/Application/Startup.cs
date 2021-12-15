@@ -20,6 +20,8 @@ using ChatApi.Swagger;
 using ChatApi.Application.Settings;
 using ChatApi.Domain.DTOs;
 using System.Reflection;
+using ChatApi.Application.Filters;
+using FluentValidation.AspNetCore;
 
 namespace ChatApi.Application
 {
@@ -36,7 +38,6 @@ namespace ChatApi.Application
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-
 
             // API versioning
             services.AddApiVersioning(options => {
@@ -92,8 +93,9 @@ namespace ChatApi.Application
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // API Validators
-            services.AddScoped<IValidator<CredentialsDto>, CredentialsValidator>();
-            services.AddValidatorsFromAssembly(Assembly.Load("ChatApi"));
+            services
+                .AddMvc(options => options.Filters.Add(new ModelStateFilter()))
+                .AddFluentValidation(options => options.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

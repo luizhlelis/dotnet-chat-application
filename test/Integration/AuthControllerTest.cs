@@ -95,8 +95,9 @@ namespace ChatApi.Test.Integration
                 .Be401Unauthorized();
         }
 
-        [Theory(DisplayName = "Should return bad request when empty username or password")]
+        [Theory(DisplayName = "Should return bad request when break contract (empty/big username or empty password)")]
         [InlineData("", "1StrongPassword*")]
+        [InlineData("test-user-test-user-test-user-test-user-test-user", "")]
         [InlineData("test-user", "")]
         [InlineData("", "")]
         public async Task ShouldReturnBadRequestWhenEmptyUsernameOrPassword(string username, string password)

@@ -9,18 +9,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.12" />
-    <PackageReference Include="FluentValidation" Version="10.3.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="10.3.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Domain\DTOs\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Domain\DTOs\" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.6" />
   </ItemGroup>
 </Project>

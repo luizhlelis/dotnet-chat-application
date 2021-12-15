@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Threading.Tasks;
 using ChatApi.Application.Responses;
 using ChatApi.Application.Settings;
 using ChatApi.Domain.DTOs;
 using ChatApi.Infrastructure;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
