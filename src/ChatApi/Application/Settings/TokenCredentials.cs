@@ -1,4 +1,4 @@
-﻿namespace ChatApi.Settings
+﻿namespace ChatApi.Application.Settings
 {
     public class TokenCredentials
     {

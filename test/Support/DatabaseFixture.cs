@@ -3,6 +3,8 @@ using System.Net.Http;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using ChatApi.Infrastructure;
+using ChatApi.Application;
+using ChatApi.Domain;
 
 namespace ChatApi.Test.Support
 {
@@ -27,7 +29,8 @@ namespace ChatApi.Test.Support
             DbContext = _testServiceScope.ServiceProvider.GetRequiredService<ChatContext>();
             _transaction = DbContext.Database.BeginTransaction();
 
-            DbContext.Users.Add(new User("test-user", "1StrongPassword*"));
+            var testUserPassword = "1StrongPassword*";
+            DbContext.Users.Add(new User("test-user", testUserPassword.GetHashSha256()));
             DbContext.SaveChanges();
         }
 

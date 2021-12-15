@@ -1,9 +1,7 @@
 ﻿using ChatApi.Infrastructure;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
-using ChatApi.Utils;
 using System;
-using ChatApi.Settings;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
@@ -11,20 +9,32 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Linq.Expressions;
+using FluentValidation;
+using ChatApi.Application.Settings;
+using ChatApi.Domain;
 
 namespace ChatApi
 {
+    public class UserValidator : AbstractValidator<User>
+    {
+        public UserValidator()
+        {
+            RuleFor(x => x.Username).NotNull().NotEmpty();
+            RuleFor(x => x.Password).NotNull().NotEmpty();
+            RuleFor(x => x.Username).MaximumLength(20);
+        }
+    }
+
     public class User
     {
         [Key]
         [Required]
         [MaxLength(20)]
-        public string Username { get; set; }
+        public string Username { get; private set; }
 
         [Required]
         [MaxLength(64)]
-        public string Password { get; set; }
+        public string Password { get; private set; }
 
         [NotMapped]
         [JsonIgnore]
@@ -34,17 +44,17 @@ namespace ChatApi
         [JsonIgnore]
         public TokenCredentials TokenCredentials { get; set; }
 
-        public User() { }
-
         public User(string username, string password)
         {
             Username = username;
-            Password = password.GetHashSha256();
+            Password = password;
         }
 
         public async Task<string> Create()
         {
-            if (!DbContext.Users.Any(user => user.Username == Username))
+            var userAlreadyExists = DbContext.Users.Any(user => user.Username == Username);
+
+            if (!userAlreadyExists)
             {
                 await DbContext.Users.AddAsync(this);
                 DbContext.SaveChanges();

@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Text;
 using FluentAssertions;
 using ChatApi.Test.Support;
+using ChatApi.Domain;
 
 namespace ChatApi.Test.Integration
 {

@@ -1,4 +1,4 @@
-﻿namespace ChatApi
+﻿namespace ChatApi.Domain
 {
     public class Authentication
     {

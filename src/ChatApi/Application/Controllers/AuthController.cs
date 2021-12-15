@@ -1,13 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using ChatApi.Application.Responses;
+using ChatApi.Application.Settings;
+using ChatApi.Domain.DTOs;
 using ChatApi.Infrastructure;
-using ChatApi.Settings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace ChatApi.Controllers
+namespace ChatApi.Application.Controllers
 {
     [ApiController]
     [ApiVersion("1.0")]
@@ -26,12 +28,15 @@ namespace ChatApi.Controllers
         }
 
         [HttpPost("token")]
-        public IActionResult Token([FromBody] User user)
+        public IActionResult Token([FromBody] CredentialsDto credentials)
         {
             IActionResult response;
 
-            user.TokenCredentials = _tokenCredentials;
-            user.DbContext = _dbContext;
+            var user = new User(credentials.Username, credentials.Password)
+            {
+                TokenCredentials = _tokenCredentials,
+                DbContext = _dbContext
+            };
 
             response = user.AreCredentialsValid() ?
                 Ok(user.Authenticate()) :

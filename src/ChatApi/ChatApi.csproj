@@ -17,10 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Infrastructure\Migrations\" />
-    <None Remove="Microsoft.EntityFrameworkCore.Design" />
+    <None Remove="Domain\DTOs\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Infrastructure\Migrations\" />
+    <Folder Include="Domain\DTOs\" />
   </ItemGroup>
 </Project>

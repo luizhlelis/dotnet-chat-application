@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace ChatApi
+namespace ChatApi.Swagger
 {
     /// <summary>
     /// Configures the Swagger generation options.

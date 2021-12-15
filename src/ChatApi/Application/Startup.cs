@@ -1,6 +1,5 @@
 ﻿using System;
 using ChatApi.Infrastructure;
-using ChatApi.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +15,11 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using FluentValidation;
-using ChatApi.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using ChatApi.Swagger;
+using ChatApi.Application.Settings;
 
-namespace ChatApi
+namespace ChatApi.Application
 {
     public class Startup
     {

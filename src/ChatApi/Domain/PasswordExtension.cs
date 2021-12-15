@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ChatApi.Utils
+namespace ChatApi.Domain
 {
     public static class PasswordExtension
     {

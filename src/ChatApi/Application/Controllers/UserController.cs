@@ -5,12 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using ChatApi.Application.Responses;
 using ChatApi.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ChatApi.Controllers
+namespace ChatApi.Application.Controllers
 {
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
@@ -44,8 +45,10 @@ namespace ChatApi.Controllers
         [HttpDelete]
         public IActionResult DeleteAsync()
         {
-            var user = new User { Username = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value };
-            user.DbContext = _dbContext;
+            var user = new User(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, string.Empty)
+            {
+                DbContext = _dbContext
+            };
 
             var errorMessage = user.Delete();
 
