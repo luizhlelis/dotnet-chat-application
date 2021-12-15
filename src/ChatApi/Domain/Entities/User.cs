@@ -9,22 +9,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using FluentValidation;
 using ChatApi.Application.Settings;
 using ChatApi.Domain;
 
 namespace ChatApi
 {
-    public class UserValidator : AbstractValidator<User>
-    {
-        public UserValidator()
-        {
-            RuleFor(x => x.Username).NotNull().NotEmpty();
-            RuleFor(x => x.Password).NotNull().NotEmpty();
-            RuleFor(x => x.Username).MaximumLength(20);
-        }
-    }
-
     public class User
     {
         [Key]

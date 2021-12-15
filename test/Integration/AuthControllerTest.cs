@@ -94,5 +94,24 @@ namespace ChatApi.Test.Integration
                 .Should()
                 .Be401Unauthorized();
         }
+
+        [Theory(DisplayName = "Should return bad request when empty username or password")]
+        [InlineData("", "1StrongPassword*")]
+        [InlineData("test-user", "")]
+        [InlineData("", "")]
+        public async Task ShouldReturnBadRequestWhenEmptyUsernameOrPassword(string username, string password)
+        {
+            // Arrange
+            var requestBody = new { Username = username, Password = password };
+            var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
+
+            // Assert
+            response
+                .Should()
+                .Be400BadRequest();
+        }
     }
 }

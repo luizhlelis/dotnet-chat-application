@@ -18,6 +18,8 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ChatApi.Swagger;
 using ChatApi.Application.Settings;
+using ChatApi.Domain.DTOs;
+using System.Reflection;
 
 namespace ChatApi.Application
 {
@@ -89,8 +91,9 @@ namespace ChatApi.Application
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            // Validators
-            services.AddScoped<IValidator<User>, UserValidator>();
+            // API Validators
+            services.AddScoped<IValidator<CredentialsDto>, CredentialsValidator>();
+            services.AddValidatorsFromAssembly(Assembly.Load("ChatApi"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
