@@ -16,10 +16,12 @@ namespace ChatApi.Test.Support
         private readonly IDbContextTransaction _transaction;
         private readonly IServiceScope _testServiceScope;
 
-        public DatabaseFixture()
+        public DatabaseFixture(Action<IServiceCollection> setupAction)
         {
+            setupAction ??= TestServiceCollections.DefaultTestServices;
+
             // constructs the testing server with the HostBuilder configuration
-            _factory = new TestingWebApplicationFactory<Startup>();
+            _factory = new TestingWebApplicationFactory<Startup>(setupAction);
             Client = _factory.CreateClient();
 
             // Begin test service scope
@@ -30,6 +32,7 @@ namespace ChatApi.Test.Support
             _transaction = DbContext.Database.BeginTransaction();
 
             var testUserPassword = "1StrongPassword*";
+
             DbContext.Users.Add(new User("test-user", testUserPassword.GetHashSha256()));
             DbContext.SaveChanges();
         }

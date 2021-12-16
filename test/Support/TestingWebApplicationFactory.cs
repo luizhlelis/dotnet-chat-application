@@ -9,11 +9,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Collections.Generic;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace ChatApi.Test.Support
 {
     public class TestingWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
     {
+        private readonly Action<IServiceCollection> _setupAction;
+
+        public TestingWebApplicationFactory(Action<IServiceCollection> setupAction = null)
+        {
+            _setupAction = setupAction ?? (services => { });
+        }
+
         protected override IHostBuilder CreateHostBuilder()
         {
             var builder = Host.CreateDefaultBuilder()
@@ -23,18 +33,7 @@ namespace ChatApi.Test.Support
                         .UseStartup<TStartup>()
                         .UseTestServer()
                         .ConfigureAppConfiguration(conf => conf.AddJsonFile("appsettings.json", optional: false).AddEnvironmentVariables())
-                        .ConfigureTestServices(services =>
-                            // DB Context injection override to transaction work as expected
-                            services
-                                .RemoveAll<ChatContext>()
-                                .AddDbContext<ChatContext>(
-                                    options => options
-                                        .UseSqlServer(ConfigurationManager.AppSettings["ConnectionStrings:ChatContext"])
-                                        .LogTo(Console.WriteLine),
-                                    ServiceLifetime.Singleton,
-                                    ServiceLifetime.Singleton
-                            )
-                        );
+                        .ConfigureTestServices(_setupAction);
                 });
 
             return builder;
