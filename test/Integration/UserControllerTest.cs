@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ChatApi.Domain;
+using ChatApi.Domain.DTOs;
 using ChatApi.Test.Support;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnCreatedWhenUserDoesNotExist()
         {
             // Arrange
-            var userToCreate = new User("user-to-create", "2StrongPassword*");
+            var userToCreate = new UserDto("user-to-create", "2StrongPassword*");
             var content = new StringContent(JsonConvert.SerializeObject(userToCreate), Encoding.UTF8, "application/json");
 
             // Act
@@ -38,7 +39,7 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnBadRequestWhenUserExists()
         {
             // Arrange
-            var requestBody = new User("test-user", "2StrongPassword*");
+            var requestBody = new UserDto("test-user", "2StrongPassword*");
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
@@ -79,6 +80,26 @@ namespace ChatApi.Test.Integration
 
             // Assert
             response.Should().Be404NotFound();
+        }
+
+        [Theory(DisplayName = "Should return bad request when break contract (empty/big username or empty password)")]
+        [InlineData("", "1StrongPassword*")]
+        [InlineData("test-user-test-user-test-user-test-user-test-user", "")]
+        [InlineData("test-user", "")]
+        [InlineData("", "")]
+        public async Task ShouldReturnBadRequestWhenEmptyUsernameOrPassword(string username, string password)
+        {
+            // Arrange
+            var requestBody = new { Username = username, Password = password };
+            var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await Client.PostAsync("v1/user", content);
+
+            // Assert
+            response
+                .Should()
+                .Be400BadRequest();
         }
     }
 }

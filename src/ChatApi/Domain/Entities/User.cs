@@ -11,7 +11,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ChatApi.Application.Settings;
 using ChatApi.Domain;
-using Microsoft.EntityFrameworkCore;
+using ChatApi.Domain.Notifications;
+using System.Net;
 
 namespace ChatApi
 {
@@ -34,53 +35,24 @@ namespace ChatApi
         [JsonIgnore]
         public TokenCredentials TokenCredentials { get; set; }
 
+        [NotMapped]
+        [JsonIgnore]
+        public NotificationContext NotifyContext { get; set; }
+
         public User(string username, string password)
         {
             Username = username;
             Password = password;
         }
 
-        public async Task<string> Create()
-        {
-            var userAlreadyExists = DbContext.Users.Any(user => user.Username == Username);
-
-            if (!userAlreadyExists)
-            {
-                Password = Password.GetHashSha256();
-                await DbContext.Users.AddAsync(this);
-                DbContext.SaveChanges();
-                return string.Empty;
-            }
-            else
-                return "User already exists";
-        }
-
-        public string Delete()
-        {
-            if (DbContext.Users.Any(user => user.Username == Username))
-            {
-                DbContext.Users.Remove(this);
-                DbContext.SaveChanges();
-                return string.Empty;
-            }
-            else
-                return "User doesn't exist";
-        }
-
-        public bool AreCredentialsValid()
-        {
-            var dbUser = DbContext.Users.FirstOrDefault(user => user.Username == Username);
-
-            return dbUser != null && IsPasswordValid(dbUser.Password);
-        }
-
-        public bool IsPasswordValid(string storedPassword)
-        {
-            return Password.GetHashSha256().Equals(storedPassword);
-        }
-
         public Authentication Authenticate()
         {
+            if (!AreCredentialsValid())
+            {
+                NotifyContext.AddNotification((int)HttpStatusCode.Unauthorized, "Access Denied");
+                return null;
+            }
+
             var expirationTime = DateTime.UtcNow
                 .AddDays(Convert.ToInt32(TokenCredentials.ExpireInDays));
 
@@ -91,7 +63,43 @@ namespace ChatApi
             };
         }
 
-        public string GenerateAccessToken(DateTime expirationTime)
+        public async Task Create()
+        {
+            var userAlreadyExists = DbContext.Users.Any(user => user.Username == Username);
+
+            if (userAlreadyExists)
+            {
+                NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "User already exists");
+                return;
+            }
+
+            Password = Password.GetHashSha256();
+            await DbContext.Users.AddAsync(this);
+            DbContext.SaveChanges();
+        }
+
+        public void Delete()
+        {
+            var userExists = DbContext.Users.Any(user => user.Username == Username);
+
+            if (!userExists)
+            {
+                NotifyContext.AddNotification((int)HttpStatusCode.NotFound, "User does not exist");
+                return;
+            }
+
+            DbContext.Users.Remove(this);
+            DbContext.SaveChanges();
+        }
+
+        private bool AreCredentialsValid()
+        {
+            var dbUser = DbContext.Users.FirstOrDefault(user => user.Username == Username);
+
+            return dbUser != null && Password.GetHashSha256().Equals(dbUser.Password);
+        }
+
+        private string GenerateAccessToken(DateTime expirationTime)
         {
             var symmetricKey = Convert.FromBase64String(TokenCredentials.HmacSecretKey);
             var tokenHandler = new JwtSecurityTokenHandler();

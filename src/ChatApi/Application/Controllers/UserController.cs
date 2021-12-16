@@ -3,6 +3,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using ChatApi.Application.Responses;
+using ChatApi.Domain.DTOs;
+using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,25 +17,24 @@ namespace ChatApi.Application.Controllers
     public class UserController : Controller
     {
         private readonly ChatContext _dbContext;
+        private readonly NotificationContext _notificationContext;
 
-        public UserController(ChatContext dbContext)
+        public UserController(ChatContext dbContext, NotificationContext notificationContext)
         {
             _dbContext = dbContext;
+            _notificationContext = notificationContext;
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] User user)
+        public async Task<IActionResult> PostAsync([FromBody] UserDto userDto)
         {
-            user.DbContext = _dbContext;
+            var user = new User(userDto.Username, userDto.Password)
+            {
+                DbContext = _dbContext,
+                NotifyContext = _notificationContext,
+            };
 
-            var errorMessage = await user.Create();
-
-            if (!string.IsNullOrEmpty(errorMessage))
-                return BadRequest(new ErrorResponseFactory().CreateErrorResponse(
-                    HttpStatusCode.BadRequest,
-                    Activity.Current.Id,
-                    errorMessage
-                ));
+            await user.Create();
 
             return Created(Request.Path.Value, user);
         }
@@ -44,17 +45,11 @@ namespace ChatApi.Application.Controllers
         {
             var user = new User(HttpContext.User.FindFirst(ClaimTypes.Name).Value, string.Empty)
             {
-                DbContext = _dbContext
+                DbContext = _dbContext,
+                NotifyContext = _notificationContext
             };
 
-            var errorMessage = user.Delete();
-
-            if (!string.IsNullOrEmpty(errorMessage))
-                return NotFound(new ErrorResponseFactory().CreateErrorResponse(
-                    HttpStatusCode.NotFound,
-                    Activity.Current.Id,
-                    errorMessage
-                ));
+            user.Delete();
 
             return Ok();
         }

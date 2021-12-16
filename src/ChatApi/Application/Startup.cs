@@ -22,6 +22,7 @@ using ChatApi.Domain.DTOs;
 using System.Reflection;
 using ChatApi.Application.Filters;
 using FluentValidation.AspNetCore;
+using ChatApi.Domain.Notifications;
 
 namespace ChatApi.Application
 {
@@ -92,9 +93,14 @@ namespace ChatApi.Application
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            services.AddScoped<NotificationContext>();
+
             // API Validators
             services
-                .AddMvc(options => options.Filters.Add(new ModelStateFilter()))
+                .AddMvc(options => {
+                    options.Filters.Add(new ModelStateFilter());
+                    options.Filters.Add<NotificationFilter>();
+                })
                 .AddFluentValidation(options => options.RegisterValidatorsFromAssemblyContaining<Startup>());
         }
 
