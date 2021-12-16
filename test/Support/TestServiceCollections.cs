@@ -14,6 +14,25 @@ namespace ChatApi.Test.Support
 {
     public static class TestServiceCollections
     {
+        public static void DefaultUserAuth(IServiceCollection services)
+        {
+            DefaultTestServices(services);
+
+            var user = new List<Claim>()
+                {
+                    new Claim(ClaimTypes.Name, "default-user"),
+                };
+
+            services.AddSingleton<IAuthorizationHandler, AllowAnonymous>();
+
+            services.AddMvc(mvcOptions =>
+            {
+                mvcOptions.Filters.Add(new AllowAnonymousFilter());
+                mvcOptions.Filters.Add(new FakeUserFilter(user));
+            }
+            ).AddApplicationPart(typeof(Startup).Assembly); ;
+        }
+
         public static void UserToDeleteAuth(IServiceCollection services)
         {
             DefaultTestServices(services);

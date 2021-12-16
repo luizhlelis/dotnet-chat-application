@@ -61,7 +61,7 @@ namespace ChatApi.Test.Integration
             var local = DbContext.Set<User>()
                 .Local
                 .FirstOrDefault(entry => entry.Username == "user-to-delete");
-            DbContext.Entry(local).State = EntityState.Detached;
+            DbContext.Entry(testUser).State = EntityState.Detached;
 
             // Act
             var response = await Client.DeleteAsync("v1/user");
