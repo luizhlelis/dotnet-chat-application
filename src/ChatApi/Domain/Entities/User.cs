@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ChatApi.Application.Settings;
 using ChatApi.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApi
 {
@@ -45,6 +46,7 @@ namespace ChatApi
 
             if (!userAlreadyExists)
             {
+                Password = Password.GetHashSha256();
                 await DbContext.Users.AddAsync(this);
                 DbContext.SaveChanges();
                 return string.Empty;
@@ -55,7 +57,7 @@ namespace ChatApi
 
         public string Delete()
         {
-            if (!DbContext.Users.Any(user => user.Username == Username))
+            if (DbContext.Users.Any(user => user.Username == Username))
             {
                 DbContext.Users.Remove(this);
                 DbContext.SaveChanges();

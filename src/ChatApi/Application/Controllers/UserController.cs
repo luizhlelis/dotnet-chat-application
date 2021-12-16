@@ -42,7 +42,7 @@ namespace ChatApi.Application.Controllers
         [HttpDelete]
         public IActionResult DeleteAsync()
         {
-            var user = new User(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, string.Empty)
+            var user = new User(HttpContext.User.FindFirst(ClaimTypes.Name).Value, string.Empty)
             {
                 DbContext = _dbContext
             };
