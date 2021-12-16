@@ -9,13 +9,10 @@ using ChatApi.Domain;
 
 namespace ChatApi.Test.Integration
 {
-    public class AuthControllerTest : IClassFixture<DatabaseFixture>
+    public class AuthControllerTest : DatabaseFixture
     {
-        private readonly DatabaseFixture _fixture;
-
-        public AuthControllerTest(DatabaseFixture fixture)
+        public AuthControllerTest() : base (null)
         {
-            _fixture = fixture;
         }
 
         [Fact(DisplayName = "Should return an access token when user exists and the password matches")]
@@ -27,7 +24,7 @@ namespace ChatApi.Test.Integration
             var expectedResponse = new Authentication { TokenType = "Bearer" };
 
             // Act
-            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var response = await Client.PostAsync("v1/auth/token", content);
             var responseMessage = await response.Content.ReadAsStringAsync();
             var authenticationResponse = JsonConvert.DeserializeObject<Authentication>(responseMessage);
 
@@ -49,15 +46,15 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
             var expectedResponse = new { Username = "test-user" };
 
-            var authResponse = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var authResponse = await Client.PostAsync("v1/auth/token", content);
             var responseMessageString = await authResponse.Content.ReadAsStringAsync();
             var authResponseMessage = JsonConvert.DeserializeObject<Authentication>(responseMessageString);
 
             var headerAuthValue = authResponseMessage.TokenType + " " + authResponseMessage.AccessToken;
 
             // Act
-            _fixture.Client.DefaultRequestHeaders.Add("Authorization", headerAuthValue);
-            var meResponse = await _fixture.Client.GetAsync("v1/auth/me");
+            Client.DefaultRequestHeaders.Add("Authorization", headerAuthValue);
+            var meResponse = await Client.GetAsync("v1/auth/me");
 
             // Assert
             meResponse.Should().Be200Ok().And.BeAs(expectedResponse);
@@ -71,7 +68,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var response = await Client.PostAsync("v1/auth/token", content);
 
             // Assert
             response
@@ -87,7 +84,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var response = await Client.PostAsync("v1/auth/token", content);
 
             // Assert
             response
@@ -107,7 +104,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _fixture.Client.PostAsync("v1/auth/token", content);
+            var response = await Client.PostAsync("v1/auth/token", content);
 
             // Assert
             response

@@ -5,11 +5,8 @@ using ChatApi.Application.Responses;
 using ChatApi.Application.Settings;
 using ChatApi.Domain.DTOs;
 using ChatApi.Infrastructure;
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ChatApi.Application.Controllers
 {
