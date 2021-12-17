@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using ChatApi.Domain.DTOs;
 using ChatApi.Domain.Entities;
 using ChatApi.Test.Support;
 using FluentAssertions;
@@ -21,8 +22,9 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnCreatedWhenChatRoomDoesNotExist()
         {
             // Arrange
-            var roomToCreate = new ChatRoom("room-to-create");
+            var roomToCreate = new ChatRoomDto("room-to-create");
             var content = new StringContent(JsonConvert.SerializeObject(roomToCreate), Encoding.UTF8, "application/json");
+            var expected = new ChatRoom(roomToCreate.Name);
 
             // Act
             var response = await Client.PostAsync("v1/chat-room", content);
@@ -30,10 +32,10 @@ namespace ChatApi.Test.Integration
             // Assert
             response.Should().Be201Created();
 
-            DbContext.ChatRoom.First(room => room.Name == roomToCreate.Name)
+            DbContext.ChatRooms.First(room => room.Name == roomToCreate.Name)
                 .Should()
                 .BeEquivalentTo(
-                    roomToCreate,
+                    expected,
                     options => options.Excluding(source => source.Id)
                 );
         }
@@ -43,7 +45,7 @@ namespace ChatApi.Test.Integration
         {
             // Arrange
             var testRoom = new ChatRoom("room-to-create");
-            DbContext.ChatRoom.Add(testRoom);
+            DbContext.ChatRooms.Add(testRoom);
             DbContext.SaveChanges();
 
             var content = new StringContent(JsonConvert.SerializeObject(testRoom), Encoding.UTF8, "application/json");
@@ -60,7 +62,7 @@ namespace ChatApi.Test.Integration
         {
             // Arrange
             var testRoom = new ChatRoom("room-to-delete");
-            DbContext.ChatRoom.Add(testRoom);
+            DbContext.ChatRooms.Add(testRoom);
             DbContext.SaveChanges();
 
             DbContext.Entry(testRoom).State = EntityState.Detached;
@@ -70,7 +72,7 @@ namespace ChatApi.Test.Integration
 
             // Assert
             response.Should().Be200Ok();
-            DbContext.ChatRoom.Where(room => room.Name == testRoom.Name)
+            DbContext.ChatRooms.Where(room => room.Name == testRoom.Name)
                 .Should().BeNullOrEmpty();
         }
 

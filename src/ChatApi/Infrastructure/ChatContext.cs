@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ChatApi.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApi.Infrastructure
 {
     public class ChatContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<ChatRoom> ChatRooms { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         public ChatContext(DbContextOptions<ChatContext> options) : base(options)
         {
