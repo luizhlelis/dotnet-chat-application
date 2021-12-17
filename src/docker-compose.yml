@@ -33,6 +33,17 @@ services:
     depends_on:
       - sql-server-database
 
+  rabbit:
+    image: rabbitmq:3.5
+    container_name: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=my_vhost
+
   sql-server-database:
     container_name: sql-server-database
     image: mcr.microsoft.com/mssql/server
