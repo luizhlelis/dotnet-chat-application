@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApi.Application.Controllers
 {
+    [ApiController]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     public class MessageController : Controller

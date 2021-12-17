@@ -37,7 +37,7 @@ namespace ChatApi.Application.Controllers
             {
                 TokenCredentials = _tokenCredentials,
                 DbContext = _dbContext,
-                NotifyContext = _notificationContext,
+                NotificationContext = _notificationContext,
             };
 
             return Ok(user.Authenticate());

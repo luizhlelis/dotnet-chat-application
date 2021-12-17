@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApi.Application.Controllers
 {
+    [ApiController]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     public class ChatRoomController : Controller
@@ -28,7 +29,7 @@ namespace ChatApi.Application.Controllers
             var room = new ChatRoom(chatRoomDto.Name)
             {
                 DbContext = _dbContext,
-                NotifyContext = _notificationContext,
+                NotificationContext = _notificationContext,
             };
 
             await room.Create();
@@ -43,7 +44,7 @@ namespace ChatApi.Application.Controllers
             var room = new ChatRoom(string.Empty, id)
             {
                 DbContext = _dbContext,
-                NotifyContext = _notificationContext
+                NotificationContext = _notificationContext
             };
 
             room.Delete();

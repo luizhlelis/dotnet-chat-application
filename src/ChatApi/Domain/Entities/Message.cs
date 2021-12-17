@@ -11,7 +11,10 @@ using System.Threading.Tasks;
 using ChatApi.Domain.DTOs;
 using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;
+using Flurl;
+using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ChatApi.Domain.Entities
 {
@@ -43,7 +46,11 @@ namespace ChatApi.Domain.Entities
 
         [NotMapped]
         [JsonIgnore]
-        public INotificationContext NotifyContext { get; set; }
+        public INotificationContext NotificationContext { get; set; }
+
+        [NotMapped]
+        [JsonIgnore]
+        public IConfiguration Configuration { get; set; }
 
         public Message()
         {
@@ -60,9 +67,13 @@ namespace ChatApi.Domain.Entities
 
         public async Task Send()
         {
-            if (IsCommand())
-                Console.WriteLine("HttpClient integration");
-                // HttpClient integration
+            var command = GetCommand();
+
+            if (!string.IsNullOrEmpty(command.Item1))
+            {
+                await SendMessageToBotApi(command.Item1, command.Item2);
+                return;
+            }
 
             await DbContext.Messages.AddAsync(this);
             DbContext.SaveChanges();
@@ -80,7 +91,7 @@ namespace ChatApi.Domain.Entities
             return roomWithMessages;
         }
 
-        public bool IsCommand()
+        public Tuple<string, string> GetCommand()
         {
             var pattern = @"^\/(.*?)\=";
             var rgx = new Regex(pattern);
@@ -89,13 +100,23 @@ namespace ChatApi.Domain.Entities
             if (match.Success)
             {
                 AvailableCommands.Get().TryGetValue(match.Groups[1].Value, out string command);
+
                 if (string.IsNullOrEmpty(command))
-                    NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "Invalid command, try to fix the syntax");
+                    NotificationContext.AddNotification((int)HttpStatusCode.BadRequest, "Invalid command, try to fix the syntax");
                 else
-                    return true;
+                    return new Tuple<string, string>(command, Content.Remove(0, match.Value.Length));
             }
 
-            return false;
+            return new Tuple<string, string>(string.Empty, string.Empty);
+        }
+
+        public async Task SendMessageToBotApi(string command, string value)
+        {
+            var botApiUrl = Configuration["Http:BotApi"];
+
+            await botApiUrl
+                .WithOAuthBearerToken(Configuration["Http:BotApiToken"])
+                .PostJsonAsync(new { Command = command, Value = value });
         }
     }
 }

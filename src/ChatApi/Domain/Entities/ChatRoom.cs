@@ -28,7 +28,7 @@ namespace ChatApi.Domain.Entities
 
         [NotMapped]
         [JsonIgnore]
-        public NotificationContext NotifyContext { get; set; }
+        public INotificationContext NotificationContext { get; set; }
 
         public ChatRoom(string name)
         {
@@ -40,7 +40,7 @@ namespace ChatApi.Domain.Entities
             Name = name;
 
             if (id == Guid.Empty)
-                NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "Invalid Id Format");
+                NotificationContext.AddNotification((int)HttpStatusCode.BadRequest, "Invalid Id Format");
 
             Id = id;
         }
@@ -51,7 +51,7 @@ namespace ChatApi.Domain.Entities
 
             if (roomAlreadyExists)
             {
-                NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "ChatRoom already exists");
+                NotificationContext.AddNotification((int)HttpStatusCode.BadRequest, "ChatRoom already exists");
                 return;
             }
 
@@ -65,7 +65,7 @@ namespace ChatApi.Domain.Entities
 
             if (!roomAlreadyExists)
             {
-                NotifyContext.AddNotification((int)HttpStatusCode.NotFound, "ChatRoom does not exist");
+                NotificationContext.AddNotification((int)HttpStatusCode.NotFound, "ChatRoom does not exist");
                 return;
             }
 

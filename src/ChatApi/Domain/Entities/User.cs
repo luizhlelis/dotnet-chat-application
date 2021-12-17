@@ -37,7 +37,7 @@ namespace ChatApi
 
         [NotMapped]
         [JsonIgnore]
-        public NotificationContext NotifyContext { get; set; }
+        public INotificationContext NotificationContext { get; set; }
 
         public User(string username, string password)
         {
@@ -49,7 +49,7 @@ namespace ChatApi
         {
             if (!AreCredentialsValid())
             {
-                NotifyContext.AddNotification((int)HttpStatusCode.Unauthorized, "Access Denied");
+                NotificationContext.AddNotification((int)HttpStatusCode.Unauthorized, "Access Denied");
                 return null;
             }
 
@@ -69,7 +69,7 @@ namespace ChatApi
 
             if (userAlreadyExists)
             {
-                NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "User already exists");
+                NotificationContext.AddNotification((int)HttpStatusCode.BadRequest, "User already exists");
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace ChatApi
 
             if (!userExists)
             {
-                NotifyContext.AddNotification((int)HttpStatusCode.NotFound, "User does not exist");
+                NotificationContext.AddNotification((int)HttpStatusCode.NotFound, "User does not exist");
                 return;
             }
 

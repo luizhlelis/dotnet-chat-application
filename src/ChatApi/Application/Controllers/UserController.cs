@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApi.Application.Controllers
 {
+    [ApiController]
     [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/[controller]")]
     public class UserController : Controller
@@ -28,7 +29,7 @@ namespace ChatApi.Application.Controllers
             var user = new User(userDto.Username, userDto.Password)
             {
                 DbContext = _dbContext,
-                NotifyContext = _notificationContext,
+                NotificationContext = _notificationContext,
             };
 
             await user.Create();
@@ -43,7 +44,7 @@ namespace ChatApi.Application.Controllers
             var user = new User(HttpContext.User.FindFirst(ClaimTypes.Name).Value, string.Empty)
             {
                 DbContext = _dbContext,
-                NotifyContext = _notificationContext
+                NotificationContext = _notificationContext
             };
 
             user.Delete();
