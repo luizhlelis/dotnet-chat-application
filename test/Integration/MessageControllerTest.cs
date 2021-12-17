@@ -8,7 +8,6 @@ using ChatApi.Domain.DTOs;
 using ChatApi.Domain.Entities;
 using ChatApi.Test.Support;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Xunit;
 

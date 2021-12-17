@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ChatApi.Domain.DTOs;
-using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
