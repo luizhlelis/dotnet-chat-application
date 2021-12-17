@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -23,9 +24,13 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnCreatedWhenPostMessage()
         {
             // Arrange
-            var message = new MessageDto("nec ullamcorper sit amet risus nullam eget felis eget nunc", Guid.NewGuid());
+            var testRoom = new ChatRoom("room-msg-test");
+            DbContext.ChatRooms.Add(testRoom);
+            DbContext.SaveChanges();
+
+            var message = new MessageDto("nec ullamcorper sit amet risus nullam eget felis eget nunc", testRoom.Id);
             var content = new StringContent(JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json");
-            var expected = new Message(message.Content, "default-user", message.ChatRoomId);
+            var expected = new Message(message.Content, "default-user", testRoom.Id);
 
             // Act
             var response = await Client.PostAsync("v1/message", content);
@@ -39,7 +44,35 @@ namespace ChatApi.Test.Integration
                     options
                         .Excluding(source => source.ShippingDateTime)
                         .Excluding(source => source.Id)
+                        .Excluding(source => source.ChatRoom)
+                        .Excluding(source => source.DbContext)
                 );
+        }
+
+        [Fact(DisplayName = "Should return some messages")]
+        public async Task ShouldReturnSomeMessages()
+        {
+            // Arrange
+            var testRoom = new ChatRoom("room-some-msg");
+            DbContext.ChatRooms.Add(testRoom);
+            var message = new Message("nec ullamcorper sit amet risus nullam eget felis eget nunc", "default-user", testRoom.Id);
+            var message2 = new Message("morbi tincidunt augue interdum velit euismod in pellentesque", "default-user", testRoom.Id);
+            DbContext.Messages.Add(message);
+            DbContext.Messages.Add(message2);
+            DbContext.SaveChanges();
+            var expected = new MessageResponseDto(message.Content, message.ChatRoomId, message.Sender, DateTime.UtcNow);
+
+            // Act
+            var response = await Client.GetAsync($"v1/message?chatRoomId={testRoom.Id}");
+            var responseMessage = await response.Content.ReadAsStringAsync();
+            var returnedMessages = JsonConvert.DeserializeObject<List<MessageResponseDto>>(responseMessage);
+
+            // Assert
+            response.Should().Be200Ok();
+            returnedMessages.First().Should().BeEquivalentTo(
+                expected,
+                options => options.Excluding(source => source.ShippingDateTime));
+
         }
 
         [Theory(DisplayName = "Should return bad request when sending a message with syntax error (empty/big message)")]

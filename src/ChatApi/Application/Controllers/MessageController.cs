@@ -23,7 +23,7 @@ namespace ChatApi.Application.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] MessageDto messageDto)
+        public async Task<IActionResult> Post([FromBody] MessageDto messageDto)
         {
             var message = new Message(messageDto.Content,
                 HttpContext.User.FindFirst(ClaimTypes.Name).Value,
@@ -34,12 +34,12 @@ namespace ChatApi.Application.Controllers
 
             await message.Send();
 
-            return Ok();
+            return Created(Request.Path.Value, message);
         }
 
         [Authorize]
         [HttpGet]
-        public async Task<List<Message>> Get([FromQuery] Guid chatRoomId)
+        public async Task<List<MessageResponseDto>> Get([FromQuery] Guid chatRoomId)
         {
             var message = new Message(){ DbContext = _dbContext };
 

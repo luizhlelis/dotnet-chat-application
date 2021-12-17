@@ -41,9 +41,9 @@ namespace ChatApi.Application.Controllers
 
         [Authorize]
         [HttpDelete]
-        public IActionResult DeleteAsync([FromQuery] Guid chatRoomId)
+        public IActionResult DeleteAsync([FromQuery] Guid id)
         {
-            var room = new ChatRoom(string.Empty, chatRoomId)
+            var room = new ChatRoom(string.Empty, id)
             {
                 DbContext = _dbContext,
                 NotifyContext = _notificationContext

@@ -24,7 +24,6 @@ namespace ChatApi.Test.Integration
             // Arrange
             var roomToCreate = new ChatRoomDto("room-to-create");
             var content = new StringContent(JsonConvert.SerializeObject(roomToCreate), Encoding.UTF8, "application/json");
-            var expected = new ChatRoom(roomToCreate.Name);
 
             // Act
             var response = await Client.PostAsync("v1/chatroom", content);
@@ -32,12 +31,10 @@ namespace ChatApi.Test.Integration
             // Assert
             response.Should().Be201Created();
 
-            DbContext.ChatRooms.First(room => room.Name == roomToCreate.Name)
+            DbContext.ChatRooms
+                .Where(room => room.Name == roomToCreate.Name).ToList()
                 .Should()
-                .BeEquivalentTo(
-                    expected,
-                    options => options.Excluding(source => source.Id)
-                );
+                .NotBeNullOrEmpty();
         }
 
         [Fact(DisplayName = "Should return bad request when chatroom already exists")]
@@ -68,7 +65,7 @@ namespace ChatApi.Test.Integration
             DbContext.Entry(testRoom).State = EntityState.Detached;
 
             // Act
-            var response = await Client.DeleteAsync("v1/chatroom");
+            var response = await Client.DeleteAsync($"v1/chatroom?id={testRoom.Id}");
 
             // Assert
             response.Should().Be200Ok();
@@ -98,7 +95,7 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnBadRequestWhenInvalidIdDelete(string chatRoomId)
         {
             // Act
-            var response = await Client.DeleteAsync($"v1/chatroom?{chatRoomId}");
+            var response = await Client.DeleteAsync($"v1/chatroom?id={chatRoomId}");
 
             // Assert
             response.Should().Be400BadRequest();

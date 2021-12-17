@@ -58,9 +58,6 @@ namespace ChatApi.Test.Integration
             DbContext.Users.Add(testUser);
             DbContext.SaveChanges();
 
-            var local = DbContext.Set<User>()
-                .Local
-                .FirstOrDefault(entry => entry.Username == "user-to-delete");
             DbContext.Entry(testUser).State = EntityState.Detached;
 
             // Act
