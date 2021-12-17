@@ -23,6 +23,7 @@ namespace ChatApi.Application.Controllers
             _notificationContext = notificationContext;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ChatRoomDto chatRoomDto)
         {
