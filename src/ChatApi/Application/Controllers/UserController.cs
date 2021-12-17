@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-using System.Net;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
-using ChatApi.Application.Responses;
 using ChatApi.Domain.DTOs;
 using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;

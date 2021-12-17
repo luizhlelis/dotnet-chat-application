@@ -28,15 +28,12 @@ namespace ChatApi
         public string Password { get; private set; }
 
         [NotMapped]
-        [JsonIgnore]
         public ChatContext DbContext { get; set; }
 
         [NotMapped]
-        [JsonIgnore]
         public TokenCredentials TokenCredentials { get; set; }
 
         [NotMapped]
-        [JsonIgnore]
         public NotificationContext NotifyContext { get; set; }
 
         public User(string username, string password)

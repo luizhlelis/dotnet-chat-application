@@ -27,7 +27,7 @@ namespace ChatApi.Test.Integration
             var expected = new ChatRoom(roomToCreate.Name);
 
             // Act
-            var response = await Client.PostAsync("v1/chat-room", content);
+            var response = await Client.PostAsync("v1/chatroom", content);
 
             // Assert
             response.Should().Be201Created();
@@ -51,7 +51,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(testRoom), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await Client.PostAsync("v1/chat-room", content);
+            var response = await Client.PostAsync("v1/chatroom", content);
 
             // Assert
             response.Should().Be400BadRequest();
@@ -68,7 +68,7 @@ namespace ChatApi.Test.Integration
             DbContext.Entry(testRoom).State = EntityState.Detached;
 
             // Act
-            var response = await Client.DeleteAsync("v1/chat-room");
+            var response = await Client.DeleteAsync("v1/chatroom");
 
             // Assert
             response.Should().Be200Ok();
@@ -86,7 +86,7 @@ namespace ChatApi.Test.Integration
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await Client.PostAsync("v1/chat-room", content);
+            var response = await Client.PostAsync("v1/chatroom", content);
 
             // Assert
             response.Should().Be400BadRequest();
@@ -98,7 +98,7 @@ namespace ChatApi.Test.Integration
         public async Task ShouldReturnBadRequestWhenInvalidIdDelete(string chatRoomId)
         {
             // Act
-            var response = await Client.DeleteAsync($"v1/chat-room?{chatRoomId}");
+            var response = await Client.DeleteAsync($"v1/chatroom?{chatRoomId}");
 
             // Assert
             response.Should().Be400BadRequest();

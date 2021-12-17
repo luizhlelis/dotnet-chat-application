@@ -1,44 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using ChatApi.Domain.DTOs;
+using ChatApi.Domain.Entities;
+using ChatApi.Domain.Notifications;
+using ChatApi.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApi.Application.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class ChatRoomController : Controller
     {
-        // GET: api/values
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly ChatContext _dbContext;
+        private readonly NotificationContext _notificationContext;
+
+        public ChatRoomController(ChatContext dbContext, NotificationContext notificationContext)
         {
-            return new string[] { "value1", "value2" };
+            _dbContext = dbContext;
+            _notificationContext = notificationContext;
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> PostAsync([FromBody] ChatRoomDto chatRoomDto)
         {
+            var room = new ChatRoom(chatRoomDto.Name)
+            {
+                DbContext = _dbContext,
+                NotifyContext = _notificationContext,
+            };
+
+            await room.Create();
+
+            return Created(Request.Path.Value, room);
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [Authorize]
+        [HttpDelete]
+        public IActionResult DeleteAsync([FromQuery] Guid chatRoomId)
         {
-        }
+            var room = new ChatRoom(string.Empty, chatRoomId)
+            {
+                DbContext = _dbContext,
+                NotifyContext = _notificationContext
+            };
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            room.Delete();
+
+            return Ok();
         }
     }
 }

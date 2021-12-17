@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;
@@ -27,25 +29,40 @@ namespace ChatApi.Domain.Entities
         [Required]
         public Guid ChatRoomId { get; private set; }
 
+        [Required]
         public virtual ChatRoom ChatRoom { get; set; }
 
         [NotMapped]
         public ChatContext DbContext { get; set; }
 
-        [NotMapped]
-        public NotificationContext NotifyContext { get; set; }
+        public Message()
+        {
+
+        }
 
         public Message(string content, string sender, Guid chatRoomId)
         {
             Content = content;
             Sender = sender;
             ChatRoomId = chatRoomId;
+            ShippingDateTime = DateTime.UtcNow;
         }
 
         public async Task Send()
         {
             await DbContext.Messages.AddAsync(this);
             DbContext.SaveChanges();
+        }
+
+        public async Task<List<Message>> GetAllAsync(Expression<Func<Message, bool>> filter)
+        {
+            var roomWithMessages = await DbContext.Messages
+                .Where(filter)
+                .Take(50)
+                .OrderBy(message => message.ShippingDateTime)
+                .ToListAsync();
+
+            return roomWithMessages;
         }
     }
 }

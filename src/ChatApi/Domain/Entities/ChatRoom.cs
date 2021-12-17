@@ -31,6 +31,12 @@ namespace ChatApi.Domain.Entities
             Name = name;
         }
 
+        public ChatRoom(string name, Guid id)
+        {
+            Name = name;
+            Id = id;
+        }
+
         public async Task Create()
         {
             var roomAlreadyExists = DbContext.ChatRooms.Any(room => room.Name == Name);
@@ -57,25 +63,6 @@ namespace ChatApi.Domain.Entities
 
             DbContext.ChatRooms.Remove(this);
             DbContext.SaveChanges();
-        }
-
-        public IEnumerable<Message> GetMessages()
-        {
-            var roomExists = DbContext.ChatRooms.Any(room => room.Name == Name);
-
-            if (!roomExists)
-            {
-                NotifyContext.AddNotification((int)HttpStatusCode.NotFound, "ChatRoom does not exist");
-                return new List<Message>();
-            }
-
-            var roomWithMessages = DbContext.ChatRooms.Where(room => room.Name == Name)
-                .Include(room => room.Messages.Take(50)).First();
-
-            var sortedMessageList = roomWithMessages.Messages.ToList();
-            sortedMessageList.Sort();
-
-            return sortedMessageList;
         }
     }
 }

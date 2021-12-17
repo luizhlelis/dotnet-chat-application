@@ -25,7 +25,7 @@ namespace ChatApi.Test.Integration
             // Arrange
             var message = new MessageDto("nec ullamcorper sit amet risus nullam eget felis eget nunc", Guid.NewGuid());
             var content = new StringContent(JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json");
-            var expected = new Message(message.Content, message.ChatRoomId, "default-user");
+            var expected = new Message(message.Content, "default-user", message.ChatRoomId);
 
             // Act
             var response = await Client.PostAsync("v1/message", content);
@@ -35,10 +35,10 @@ namespace ChatApi.Test.Integration
 
             DbContext.Messages.First()
                 .Should()
-                .BeEquivalentTo(
-                    expected,
-                    options => options.Excluding(source => source.DateTime),
-                    options => options.Excluding(source => source.Id)
+                .BeEquivalentTo(expected, options =>
+                    options
+                        .Excluding(source => source.ShippingDateTime)
+                        .Excluding(source => source.Id)
                 );
         }
 
