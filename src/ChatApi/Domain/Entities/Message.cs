@@ -4,9 +4,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ChatApi.Domain.DTOs;
+using ChatApi.Domain.Notifications;
 using ChatApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +41,10 @@ namespace ChatApi.Domain.Entities
         [JsonIgnore]
         public ChatContext DbContext { get; set; }
 
+        [NotMapped]
+        [JsonIgnore]
+        public INotificationContext NotifyContext { get; set; }
+
         public Message()
         {
 
@@ -53,6 +60,10 @@ namespace ChatApi.Domain.Entities
 
         public async Task Send()
         {
+            if (IsCommand())
+                Console.WriteLine("HttpClient integration");
+                // HttpClient integration
+
             await DbContext.Messages.AddAsync(this);
             DbContext.SaveChanges();
         }
@@ -67,6 +78,24 @@ namespace ChatApi.Domain.Entities
                 .ToListAsync();
 
             return roomWithMessages;
+        }
+
+        public bool IsCommand()
+        {
+            var pattern = @"^\/(.*?)\=";
+            var rgx = new Regex(pattern);
+            var match = rgx.Match(Content);
+
+            if (match.Success)
+            {
+                AvailableCommands.Get().TryGetValue(match.Groups[1].Value, out string command);
+                if (string.IsNullOrEmpty(command))
+                    NotifyContext.AddNotification((int)HttpStatusCode.BadRequest, "Invalid command, try to fix the syntax");
+                else
+                    return true;
+            }
+
+            return false;
         }
     }
 }
