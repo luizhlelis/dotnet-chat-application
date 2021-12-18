@@ -18,15 +18,17 @@ namespace BotApi.Domain.Entities
     {
         public string Name { get; private set; }
         public string Value { get; private set; }
+        public Guid ChatRoomId { get; private set; }
 
         public IConfiguration Configuration { get; set; }
         public INotificationContext NotificationContext { get; set; }
         public IMessageBroker MessageBroker { get; set; }
 
-        public Command(string name, string value)
+        public Command(string name, string value, Guid chatRoomId)
         {
             Name = name;
             Value = value;
+            ChatRoomId = chatRoomId;
         }
 
         public async Task ApplyAction()
@@ -43,7 +45,10 @@ namespace BotApi.Domain.Entities
 
             var quotes = await GetCsvAsync(endpoint, path);
 
-            MessageBroker.PublishInQueue(BuildMessage(quotes.FirstOrDefault()?.Close));
+            MessageBroker.PublishInQueue(
+                BuildMessage(quotes.FirstOrDefault()?.Close),
+                ChatRoomId
+            );
         }
 
         public async Task<List<CsvModel>> GetCsvAsync(string endpoint, string path)
@@ -55,7 +60,7 @@ namespace BotApi.Domain.Entities
                 var response = await endpoint.WithHeader("Accept", "text/plain").GetAsync();
                 var csvResponseMessage = await response.GetStringAsync();
 
-                using var reader = new StreamReader(csvResponseMessage);
+                using var reader = new StringReader(csvResponseMessage);
                 using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
                 var records = csv.GetRecords<CsvModel>();
@@ -72,7 +77,7 @@ namespace BotApi.Domain.Entities
         {
             var message = string.IsNullOrEmpty(close) ?
                 "Sorry, we're facing troubles in quotation services":
-                Value.ToUpper() + " quote is $" + close + "per share";
+                Value.ToUpper() + " quote is $" + close + " per share";
 
             return message;
         }

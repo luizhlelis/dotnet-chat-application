@@ -116,7 +116,7 @@ namespace ChatApi.Domain.Entities
 
             await botApiUrl
                 .WithOAuthBearerToken(Configuration["Http:BotApiToken"])
-                .PostJsonAsync(new { Name = commandName, Value = value });
+                .PostJsonAsync(new { Name = commandName, Value = value, ChatRoomId });
         }
     }
 }

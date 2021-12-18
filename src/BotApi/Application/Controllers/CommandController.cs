@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using BotApi.Domain.DTOs;
 using BotApi.Domain.Entities;
+using BotApi.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,19 +14,21 @@ namespace BotApi.Application.Controllers
     public class CommandController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IMessageBroker _messageBroker;
 
-        public CommandController(IConfiguration configuration)
+        public CommandController(IConfiguration configuration, IMessageBroker messageBroker)
         {
             _configuration = configuration;
+            _messageBroker = messageBroker;
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> Post([FromBody] CommandDto commandDto)
         {
-            var command = new Command(commandDto.Name, commandDto.Value)
+            var command = new Command(commandDto.Name, commandDto.Value, commandDto.ChatRoomId)
             {
-                Configuration = _configuration
+                Configuration = _configuration,
+                MessageBroker = _messageBroker
             };
 
             await command.ApplyAction();

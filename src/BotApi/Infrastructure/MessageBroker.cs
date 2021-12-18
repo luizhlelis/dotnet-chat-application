@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -19,9 +20,11 @@ namespace BotApi.Infrastructure
             _channel = _rabbitConnection.CreateModel();
         }
 
-        public void PublishInQueue(string messageBody)
+        public void PublishInQueue(string messageBody, Guid chatRoomId)
         {
-            var message = JsonConvert.SerializeObject(new { Message = messageBody, Sender = "chat-bot" });
+            var message = JsonConvert.SerializeObject(
+                new { Message = messageBody, Sender = "chat-bot", ChatRoomId = chatRoomId });
+
             var body = Encoding.UTF8.GetBytes(message);
 
             _channel.QueueDeclare(

@@ -105,7 +105,7 @@ namespace BotApi.Application
             }.CreateConnection();
 
             services.AddSingleton(raabitConnection);
-            services.AddScoped<MessageBroker>();
+            services.AddScoped<IMessageBroker, MessageBroker>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
