@@ -110,13 +110,13 @@ namespace ChatApi.Domain.Entities
             return new Tuple<string, string>(string.Empty, string.Empty);
         }
 
-        public async Task SendMessageToBotApi(string command, string value)
+        public async Task SendMessageToBotApi(string commandName, string value)
         {
             var botApiUrl = Configuration["Http:BotApi"];
 
             await botApiUrl
                 .WithOAuthBearerToken(Configuration["Http:BotApiToken"])
-                .PostJsonAsync(new { Command = command, Value = value });
+                .PostJsonAsync(new { Name = commandName, Value = value });
         }
     }
 }
