@@ -4,16 +4,36 @@ services:
   chat-api:
     container_name: chat-api
     environment:
-      ConnectionStrings__TimeSheetContext: "Data Source=sql-server-database; Initial Catalog=TimeSheets; User Id=sa; Password=1StrongPassword*"
+      ConnectionStrings__ChatContext: "Data Source=sql-server-database; Initial Catalog=ChatDb; User Id=sa; Password=1StrongPassword*"
     working_dir: /app
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - APP_PATH=ChatApi
     depends_on:
       - sql-server-database
+      - migrations
     command: "dotnet ChatApi.dll"
     ports:
       - "80:80"
+
+  bot-api:
+    container_name: bot-api
+    environment:
+      ConnectionStrings__ChatContext: "Data Source=sql-server-database; Initial Catalog=ChatDb; User Id=sa; Password=1StrongPassword*"
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP_PATH=BotApi
+    depends_on:
+      - sql-server-database
+      - rabbit
+    command: "dotnet BotApi.dll"
+    ports:
+      - "70:80"
 
   migrations:
     container_name: migrations
@@ -21,8 +41,6 @@ services:
       context: .
       dockerfile: Dockerfile.migrations
     working_dir: /app
-#    volumes:
-#        - ./ChatApi/Infrastructure/Migrations:/app/Migrations
     environment:
       PATH: "$PATH:$HOME/.dotnet/tools/"
       PROJECT: "/app/ChatApi.csproj"
@@ -57,19 +75,26 @@ services:
     container_name: integration-tests
     image: mcr.microsoft.com/dotnet/sdk:5.0
     environment:
-      - ConnectionStrings__TimeSheetContext="Data Source=sql-server-database; Initial Catalog=ChatDbTest; User Id=sa; Password=1StrongPassword*""
+      - ConnectionStrings__ChatContext=Data Source=sql-server-database; Initial Catalog=ChatDb; User Id=sa; Password=1StrongPassword*
     volumes:
-      - ./ChatApi/wait-for-it.sh:/app/wait-for-it.sh
       - ../test:/test
-    working_dir: /app
+      - ../src:/src
+    working_dir: /src/ChatApi
+    depends_on:
+      - sql-server-database
+      - migrations
     command:
       [
         "./Scripts/wait-for-it.sh",
         "sql-server-database:1433",
+        "-t",
+        "10",
+        "--",
+        "./Scripts/wait-for-it.sh",
+        "migrations:5000",
+        "-t",
+        "10",
         "--",
         "dotnet",
-        "test",
-        "../test/ChatApi.Test.csproj"
+        "test"
       ]
-    depends_on:
-      - sql-server-database
