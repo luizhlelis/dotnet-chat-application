@@ -23,7 +23,7 @@ namespace BotApi.Infrastructure
         public void PublishInQueue(string messageBody, Guid chatRoomId)
         {
             var message = JsonConvert.SerializeObject(
-                new { Message = messageBody, Sender = "chat-bot", ChatRoomId = chatRoomId });
+                new { Content = messageBody, Sender = "chat-bot", ChatRoomId = chatRoomId });
 
             var body = Encoding.UTF8.GetBytes(message);
 
